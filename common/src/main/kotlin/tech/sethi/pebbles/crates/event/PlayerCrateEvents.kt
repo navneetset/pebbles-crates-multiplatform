@@ -28,17 +28,17 @@ object PlayerCrateEvents {
                         PebblesCrates.LOGGER.info("Key detected")
                     }
 
-                    EventResult.interruptFalse()
+                    return@register EventResult.interruptFalse()
                 }
 
-                if (crateLocation == null && isCrateCreator(player.inventory.mainHandStack)) {
+                if (isCrateCreator(player.inventory.mainHandStack)) {
                     val crateId = player.inventory.mainHandStack.nbt!!.getString("CrateName")
                     val newLocation =
                         CrateLoader.CrateLocation(crateId, blockPos.asLong(), player.world.registryKey.value.toString())
                     CrateLoader.addCrateData(newLocation)
 
                     player.sendMessage(PM.returnStyledMMText("<gold>Created a new crate location for $crateId"), false)
-                    EventResult.interruptFalse()
+                    return@register EventResult.interruptFalse()
                 }
             }
             EventResult.pass()
