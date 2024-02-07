@@ -44,6 +44,7 @@ object ConfigHandler {
     data class Config(
         val enableParticleEffects: Boolean = true,
         val textType: TextType = TextType.LEGACY,
+        val shuffleCount: Int = 5,
         val shuffleSound: SoundConfig = SoundConfig(true, "minecraft:block.note_block.bell", 0.5f, 1.0f),
         val rewardSound: SoundConfig = SoundConfig(true, "minecraft:block.ender_chest.open", 1.0f, 1.5f),
     )

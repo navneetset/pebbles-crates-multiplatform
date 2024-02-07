@@ -21,6 +21,7 @@ import net.minecraft.sound.SoundEvent
 import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
+import tech.sethi.pebbles.crates.PebblesCrates
 import tech.sethi.pebbles.crates.config.ConfigHandler
 
 object PM {
@@ -129,5 +130,15 @@ object PM {
     fun getStatusEffect(statusEffectId: String): StatusEffect {
         return Registries.STATUS_EFFECT.get(Identifier.tryParse(statusEffectId))
             ?: throw Exception("Status effect $statusEffectId not found")
+    }
+
+    fun runCommand(command: String) {
+        try {
+            val parseResults: ParseResults<ServerCommandSource> =
+                PebblesCrates.sever!!.commandManager.dispatcher.parse(command, PebblesCrates.sever!!.commandSource)
+            PebblesCrates.sever!!.commandManager.dispatcher.execute(parseResults)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

@@ -7,6 +7,7 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Hand
 import net.minecraft.world.World
 import tech.sethi.pebbles.crates.PebblesCrates
+import tech.sethi.pebbles.crates.config.ConfigHandler
 import tech.sethi.pebbles.crates.config.CrateLoader
 import tech.sethi.pebbles.crates.screens.general.PrizeDisplayScreen
 import tech.sethi.pebbles.crates.util.PM
@@ -52,5 +53,26 @@ object PlayerCrateEvents {
 
     fun isCrateCreator(heldStack: ItemStack): Boolean {
         return heldStack.hasNbt() && heldStack.nbt!!.contains("CrateName") && heldStack.nbt!!.contains("CrateCreator")
+    }
+
+    fun rollCrate(crateId: String, player: ServerPlayerEntity): List<CrateLoader.Prize> {
+        val crate = CrateLoader.getCrateConfig(crateId) ?: return emptyList()
+        val sumWeight = crate.prize.map { it.chance }.sum()
+        val roll = (0..sumWeight).random()
+        var currentWeight = 0
+        val outputAmount = ConfigHandler.config.shuffleCount
+        val output = mutableListOf<CrateLoader.Prize>()
+
+        for (prize in crate.prize) {
+            currentWeight += prize.chance
+            if (roll <= currentWeight) {
+                output.add(prize)
+                if (output.size == outputAmount) {
+                    break
+                }
+            }
+        }
+
+        return output
     }
 }
