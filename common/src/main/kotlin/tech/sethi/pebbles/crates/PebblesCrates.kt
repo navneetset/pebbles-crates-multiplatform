@@ -13,7 +13,7 @@ import java.io.File
 object PebblesCrates {
     const val MOD_ID = "pebbles_crates"
     val LOGGER = LogManager.getLogger()
-    var sever: MinecraftServer? = null
+    var server: MinecraftServer? = null
     val configDir = File("config/pebbles-crate/")
 
     fun init() {
@@ -24,10 +24,11 @@ object PebblesCrates {
         }
 
         LifecycleEvent.SERVER_STARTING.register { server ->
-            sever = server
+            this.server = server
         }
 
         PlayerCrateEvents.onRightClick()
+        PlayerCrateEvents.onBreakCrate()
 
         LifecycleEvent.SERVER_STARTED.register {
 

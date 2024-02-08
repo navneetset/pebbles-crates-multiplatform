@@ -135,8 +135,8 @@ object PM {
     fun runCommand(command: String) {
         try {
             val parseResults: ParseResults<ServerCommandSource> =
-                PebblesCrates.sever!!.commandManager.dispatcher.parse(command, PebblesCrates.sever!!.commandSource)
-            PebblesCrates.sever!!.commandManager.dispatcher.execute(parseResults)
+                PebblesCrates.server!!.commandManager.dispatcher.parse(command, PebblesCrates.server!!.commandSource)
+            PebblesCrates.server!!.commandManager.dispatcher.execute(parseResults)
         } catch (e: Exception) {
             e.printStackTrace()
         }

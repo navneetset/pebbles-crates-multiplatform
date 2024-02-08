@@ -14,7 +14,7 @@ loom {
         convertAccessWideners.set(true)
         extraAccessWideners.add(loom.accessWidenerPath.get().asFile.name)
 
-        mixinConfig("pebblescrates-common.mixins.json")
+//        mixinConfig("pebblescrates-common.mixins.json")
         mixinConfig("pebblescrates.mixins.json")
     }
 }
@@ -45,6 +45,11 @@ dependencies {
     common(project(":common", "namedElements")) { isTransitive = false }
     shadowCommon(project(":common", "transformProductionForge")) { isTransitive = false }
 
+    shadowCommon("net.kyori:adventure-api:${property("minimessage_version")}")
+    shadowCommon("net.kyori:adventure-text-minimessage:${property("minimessage_version")}")
+    shadowCommon("net.kyori:adventure-text-serializer-gson:${property("minimessage_version")}")
+    shadowCommon("net.kyori:adventure-text-serializer-legacy:${property("minimessage_version")}")
+
     // Kotlin For Forge
     implementation("thedarkcolour:kotlinforforge:${rootProject.property("kotlin_for_forge_version")}")
 }
@@ -70,8 +75,12 @@ tasks.shadowJar {
     exclude("fabric.mod.json")
     exclude("architectury.common.json")
     exclude("kotlin/**")
+    exclude("org/intellij/**/*")
+    exclude("org/jetbrains/**/*")
+    exclude("com/google/gson/**/*")
 
-//    relocate("org.bson", "tech.sethi.pebbles.api.bson")
+    relocate("net.kyori", "tech.sethi.pebbles.crates.kyori")
+    relocate("META-INF/services", "META-INF/services/tech.sethi.crates.pebbles")
     configurations = listOf(shadowCommon)
     archiveClassifier.set("dev-shadow")
 }
@@ -80,7 +89,7 @@ tasks.remapJar {
     injectAccessWidener.set(true)
     inputFile.set(tasks.shadowJar.get().archiveFile)
     dependsOn(tasks.shadowJar)
-    archiveClassifier.set(null as String?)
+    archiveClassifier.set("forge")
 }
 
 tasks.jar {

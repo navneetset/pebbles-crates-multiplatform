@@ -2,9 +2,14 @@ package tech.sethi.pebbles.crates.config
 
 import com.google.gson.GsonBuilder
 import net.minecraft.item.ItemStack
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import tech.sethi.pebbles.crates.PebblesCrates
+import tech.sethi.pebbles.crates.event.PlayerCrateEvents
+import tech.sethi.pebbles.crates.particles.HeartParticle
+import tech.sethi.pebbles.crates.particles.SparkleParticle
+import tech.sethi.pebbles.crates.particles.SpiralParticle
 import tech.sethi.pebbles.crates.util.ConfigFileHandler
 import tech.sethi.pebbles.crates.util.PM
 import java.io.File
@@ -66,9 +71,23 @@ object CrateLoader {
         crateLocations.clear()
 
         val data = crateDataFileHandler.config
+
+        HeartParticle.clearAll()
+        SpiralParticle.clearAll()
+        SparkleParticle.clearAll()
+
         data.crates.forEach { crateLocation ->
             val pos = BlockPos.fromLong(crateLocation.blockPos)
             crateLocations[pos] = crateLocation
+
+            val world = PlayerCrateEvents.worldMap[crateLocation.world]!!
+            when (getCrateConfig(crateLocation.crateId)?.particle) {
+                "spiral" -> SpiralParticle.queueAdd(pos, world)
+                "sparkle" -> SparkleParticle.queueAdd(pos, world)
+                "heart" -> HeartParticle.queueAdd(pos, world)
+                "none" -> {}
+                else -> SparkleParticle.queueAdd(pos, world)
+            }
         }
 
         println("Pebble's Crates: ${crateLocations.size} crate locations loaded")
@@ -89,19 +108,35 @@ object CrateLoader {
         crateDataFileHandler.save()
 
         crateLocations[BlockPos.fromLong(crateLocation.blockPos)] = crateLocation
+
+        val world = PlayerCrateEvents.worldMap[crateLocation.world]!!
+        when (getCrateConfig(crateLocation.crateId)?.particle) {
+            "spiral" -> SpiralParticle.queueAdd(BlockPos.fromLong(crateLocation.blockPos), world)
+            "sparkle" -> SparkleParticle.queueAdd(BlockPos.fromLong(crateLocation.blockPos), world)
+            "heart" -> HeartParticle.queueAdd(BlockPos.fromLong(crateLocation.blockPos), world)
+            "none" -> {}
+            else -> SparkleParticle.queueAdd(BlockPos.fromLong(crateLocation.blockPos), world)
+        }
     }
 
     fun removeCrateData(crateLocation: CrateLocation) {
         val data = crateDataFileHandler.config
         data.crates.remove(crateLocation)
+
+        SpiralParticle.queueRemove(BlockPos.fromLong(crateLocation.blockPos))
+        SparkleParticle.queueRemove(BlockPos.fromLong(crateLocation.blockPos))
+        HeartParticle.queueRemove(BlockPos.fromLong(crateLocation.blockPos))
+
         crateDataFileHandler.save()
 
         crateLocations.remove(BlockPos.fromLong(crateLocation.blockPos))
     }
 
+
     data class CrateConfig(
         val id: String? = null,
         val crateName: String,
+        val particle: String? = "spiral",
         val crateKey: CrateKey,
         var prize: List<Prize>,
     )
@@ -127,9 +162,7 @@ object CrateLoader {
     ) {
         fun toItemStack(): ItemStack {
             val parsedLore = lore?.map {
-                it.replace("{chance}", "$chance")
-                    .replace("{prize_name}", name)
-                    .replace("{prize_amount}", "$amount")
+                it.replace("{chance}", "$chance").replace("{prize_name}", name).replace("{prize_amount}", "$amount")
                     .replace("{crate_name}", name)
             }
             val stack = PM.createItemStack(PM.getItem(material), amount, name, parsedLore, nbt)
@@ -141,6 +174,32 @@ object CrateLoader {
 
             return stack
         }
+
+        fun onReward(player: ServerPlayerEntity, crate: CrateConfig) {
+            commands.forEach { command ->
+                val parsedCommand = command.replace("{player_name}", player.name.string)
+                PM.runCommand(parsedCommand)
+
+                if (broadcast != null) {
+                    val parsedMessage =
+                        broadcast.replace("{player_name}", player.name.string).replace("{prize_name}", name)
+                            .replace("{prize_amount}", "$amount").replace("{crate_name}", crate.crateName)
+                            .replace("{chance}", "$chance")
+
+                    PebblesCrates.server!!.playerManager.broadcast(PM.returnStyledText(parsedMessage), false)
+                }
+
+                if (messageToOpener != null) {
+                    val parsedMessage =
+                        messageToOpener.replace("{player_name}", player.name.string).replace("{prize_name}", name)
+                            .replace("{prize_amount}", "$amount").replace("{crate_name}", crate.crateName)
+                            .replace("{chance}", "$chance")
+
+                    player.sendMessage(PM.returnStyledText(parsedMessage), false)
+                }
+            }
+
+        }
     }
 
     data class CrateData(
@@ -149,5 +208,7 @@ object CrateLoader {
 
     data class CrateLocation(
         val crateId: String, val blockPos: Long, val world: String
-    )
+    ) {
+        var isRolling = false
+    }
 }
