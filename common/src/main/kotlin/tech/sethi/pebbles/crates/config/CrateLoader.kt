@@ -210,5 +210,6 @@ object CrateLoader {
         val crateId: String, val blockPos: Long, val world: String
     ) {
         var isRolling = false
+        var lastRollTime = 0L
     }
 }

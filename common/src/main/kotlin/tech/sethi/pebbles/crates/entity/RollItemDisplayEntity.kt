@@ -53,6 +53,7 @@ class RollItemDisplayEntity(
 
         itemDisplayImpl.`pebbles_crates$publicSetTransformationMode`(ModelTransformationMode.HEAD)
 //        setTransformationModeUsingReflection(ModelTransformationMode.HEAD)
+        crateLocation.lastRollTime = System.currentTimeMillis()
     }
 
     override fun tick() {
@@ -131,6 +132,7 @@ class RollItemDisplayEntity(
 
             }
             if (lastPrizeTick == 30) {
+                crateLocation.isRolling = false
                 discard()
                 val prize = prizes[currentPrize]
                 prize.onReward(player, crate)

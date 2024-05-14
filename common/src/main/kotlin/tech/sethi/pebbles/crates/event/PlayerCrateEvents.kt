@@ -32,7 +32,7 @@ object PlayerCrateEvents {
                         PrizeDisplayScreen.open(player as ServerPlayerEntity, crate)
                     }
 
-                    if (isKey(player.inventory.mainHandStack) && crateLocation.isRolling.not()) {
+                    if (isKey(player.inventory.mainHandStack) && (crateLocation.isRolling.not() || crateLocation.lastRollTime + 5000 < System.currentTimeMillis())) {
                         crateLocation.isRolling = true
                         val keyCrateName = player.inventory.mainHandStack.nbt!!.getString("CrateName")
                         if (keyCrateName != crate.crateName) {
