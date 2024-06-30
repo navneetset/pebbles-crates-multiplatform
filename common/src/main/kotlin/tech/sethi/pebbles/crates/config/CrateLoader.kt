@@ -160,15 +160,17 @@ object CrateLoader {
         val lore: List<String>?,
         val chance: Int
     ) {
-        fun toItemStack(): ItemStack {
+        fun toItemStack(totalWeight: Int? = 1): ItemStack {
+            val calculatedChance: Double = (chance.toDouble() / totalWeight!!) * 100
+            val twoDecimalChance = String.format("%.2f", calculatedChance)
             val parsedLore = lore?.map {
-                it.replace("{chance}", "$chance").replace("{prize_name}", name).replace("{prize_amount}", "$amount")
+                it.replace("{chance}", twoDecimalChance).replace("{prize_name}", name).replace("{prize_amount}", "$amount")
                     .replace("{crate_name}", name)
             }
             val stack = PM.createItemStack(PM.getItem(material), amount, name, parsedLore, nbt)
 
             if (lore.isNullOrEmpty()) {
-                val chanceLore = listOf("Chance: ${chance}%")
+                val chanceLore = listOf("Chance: $twoDecimalChance%")
                 PM.setLore(stack, chanceLore)
             }
 

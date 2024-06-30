@@ -32,6 +32,8 @@ class PrizeDisplayScreen(
     val fillSlots = ConfigHandler.prizeScreenConfig.fillSlots
     val prizeSlots = ConfigHandler.prizeScreenConfig.prizeSlots
 
+    val totalWeight = crate.prize.sumOf { it.chance }
+
     init {
         fillPlaceholderItems()
         populateInventory()
@@ -49,7 +51,7 @@ class PrizeDisplayScreen(
 
         for (i in startIndex until endIndex) {
             val slot = prizeSlots[i - startIndex]
-            if (i < items.size) inventory.setStack(slot, items[i].toItemStack())
+            if (i < items.size) inventory.setStack(slot, items[i].toItemStack(totalWeight))
         }
     }
 
